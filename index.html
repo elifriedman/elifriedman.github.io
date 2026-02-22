@@ -1,8 +1,443 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta http-equiv="refresh" content="0; url=http://ee.cooper.edu/~friedm3" />
-  </head>
-  <body>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sipoor | Their Life. Your Legacy. One Beautiful Book.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-bg: #fdfaf6;
+            --ink: #1a1a1a;
+            --sepia: #7c6a5a;
+            --gold: #c5a059;
+            --accent: #d4a373;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--paper-bg); color: var(--ink); scroll-behavior: smooth; }
+        h1, h2, h3, h4, .serif { font-family: 'Playfair Display', serif; }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        .book-preview {
+            perspective: 1500px;
+        }
+        .book-cover {
+            transform: rotateY(-15deg);
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.15);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .book-cover:hover {
+            transform: rotateY(0deg) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+        }
+
+        .step-active {
+            border-left: 3px solid var(--gold);
+            padding-left: 1.5rem;
+            opacity: 1;
+        }
+        .step-inactive {
+            border-left: 1px solid #e5e7eb;
+            padding-left: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .result-pill {
+            background: linear-gradient(135deg, #fdfaf6 0%, #f5eee6 100%);
+            border: 1px solid #e5e1da;
+        }
+    </style>
+    <!-- Chosen Palette: Heritage Linen & Ink (A classic, editorial aesthetic) -->
+    <!-- Application Structure Plan: 
+         1. Hero: Focus on the final artifact (The Book).
+         2. The Conflict: DIY failure vs. Sipoor certainty (Data viz).
+         3. The Experience: Described as a "Ritual" rather than "Tech".
+         4. Interactive Artifact Preview: A chapter explorer.
+         5. The Packages: Result-oriented tiers.
+         Rationale: By de-emphasizing AI, we build trust with a demographic that values artisanal quality over automated speed. 
+         Update: Purchase buttons redirected to email to facilitate high-touch sales. -->
+    <!-- Visualization & Content Choices:
+         - Success Metrics: Bar chart comparing DIY completion (5%) vs Sipoor completion (98%).
+         - Narrative Breadth: Radar chart showing the variety of life areas captured (Career, Family, Childhood, Values).
+         - Artifact Explorer: JS-based chapter switcher to show the "Look and Feel" of the book.
+         - NO SVG used. Unicode symbols and CSS styling for all visual indicators. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="selection:bg-[#faedcd] leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="bg-white/90 backdrop-blur-sm border-b border-stone-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between h-20 items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl font-black tracking-tight text-stone-900 serif">Sipoor</span>
+            </div>
+            <div class="hidden md:flex gap-10 text-sm font-medium uppercase tracking-widest text-stone-500">
+                <a href="#artifact" class="hover:text-stone-900 transition">The Book</a>
+                <a href="#ritual" class="hover:text-stone-900 transition">The Ritual</a>
+                <a href="#success" class="hover:text-stone-900 transition">Why it Works</a>
+            </div>
+            <a href="mailto:story@mysipoor.life?subject=Inquiry: Starting a Legacy Project" class="bg-stone-900 text-white px-7 py-3 rounded-sm text-sm font-bold hover:bg-stone-800 transition uppercase tracking-widest shadow-lg inline-block">Start the Legacy</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-16 pb-24 border-b border-stone-100">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8">
+                <div class="inline-block border-b-2 border-stone-900 pb-1">
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">A Finished Family History</span>
+                </div>
+                <h1 class="text-6xl md:text-7xl font-bold text-stone-900 leading-[1.1]">
+                    The life they lived. <br/><span class="italic text-stone-600">The book they deserve.</span>
+                </h1>
+                <p class="text-xl text-stone-600 max-w-lg">
+                    We turn your parents' stories into a museum-quality library volume. No work for you. No tech for them. Just a finished legacy.
+                </p>
+                <div class="flex items-center gap-8 pt-4">
+                    <a href="mailto:story@mysipoor.life?subject=Inquiry: Reserve a Legacy Volume" class="bg-stone-900 text-white px-10 py-5 rounded-sm text-lg font-bold hover:bg-stone-800 transition shadow-xl inline-block">Reserve Your Volume</a>
+                    <div class="text-sm text-stone-500 italic">
+                        "The most meaningful gift <br/>our family ever received."
+                    </div>
+                </div>
+            </div>
+            
+            <div class="book-preview flex justify-center py-10">
+                <div class="book-cover w-72 h-[450px] bg-[#2a2a2a] rounded-r-lg border-l-[12px] border-stone-800 p-8 flex flex-col justify-between text-white relative">
+                    <div class="text-center">
+                        <div class="text-stone-500 uppercase tracking-widest text-[10px] mb-8 font-bold">The Sipoor Collection</div>
+                        <h2 class="text-3xl font-bold leading-tight mt-10">The Life of <br/>Samuel Green</h2>
+                        <div class="w-12 h-0.5 bg-stone-500 mx-auto mt-6"></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-stone-400 font-serif text-sm">Volume I</p>
+                    </div>
+                    <!-- Texture overlay simulation -->
+                    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACFJREFUGFdjZEADDAwM/8H4P0wwMEAkEBrEQBIsSJAIBQB8KwsLvD4N7AAAAABJRU5ErkJggg==');"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- The Evidence Section -->
+    <section id="success" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="text-4xl font-bold mb-8">Why 95% of family projects <br/><span class="text-stone-400">never get finished.</span></h2>
+                    <p class="text-lg text-stone-600 mb-10 leading-relaxed">
+                        Most families start with the best intentions—buying a journal or recording an interview. But without a structured editorial ritual, life gets busy. Stories stay as raw audio or empty pages.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="result-pill p-6 rounded-xl border border-stone-200">
+                            <h4 class="font-bold text-xl mb-2">The Sipoor Promise: 100% Completion</h4>
+                            <p class="text-sm text-stone-500">We don't just "help" you. We take the wheel. Our editorial ritual ensures that every memory is captured, edited, and printed without a single hour of work on your part.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-stone-50 rounded-3xl p-10 border border-stone-100">
+                    <h4 class="text-center font-bold text-xs uppercase tracking-widest text-stone-400 mb-10">Project Completion Rates</h4>
+                    <div class="chart-container">
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                    <div class="mt-10 grid grid-cols-2 gap-4 text-center">
+                        <div class="p-4 bg-white rounded-lg shadow-sm border border-stone-100">
+                            <span class="block text-3xl font-bold text-stone-300 italic">5%</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">DIY Success</span>
+                        </div>
+                        <div class="p-4 bg-white rounded-lg shadow-sm border border-stone-800">
+                            <span class="block text-3xl font-bold text-stone-900 italic">98%</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Sipoor Success</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Artifact Explorer -->
+    <section id="artifact" class="py-24 border-t border-stone-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">A Masterpiece of Memory</h2>
+                <p class="text-stone-500">Your legacy is more than just text. It's a curated artifact.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-12">
+                <!-- Navigation -->
+                <div class="space-y-4">
+                    <button onclick="switchArtifact(0)" id="art-0" class="w-full text-left transition-all duration-300 step-active">
+                        <h4 class="font-bold text-lg">The Narrative Voice</h4>
+                        <p class="text-sm text-stone-500">Polished, first-person storytelling that sounds exactly like them.</p>
+                    </button>
+                    <button onclick="switchArtifact(1)" id="art-1" class="w-full text-left transition-all duration-300 step-inactive">
+                        <h4 class="font-bold text-lg">Photo Integration</h4>
+                        <p class="text-sm text-stone-500">Scanning and retouching services for old family polaroids.</p>
+                    </button>
+                    <button onclick="switchArtifact(2)" id="art-2" class="w-full text-left transition-all duration-300 step-inactive">
+                        <h4 class="font-bold text-lg">The Physical Volume</h4>
+                        <p class="text-sm text-stone-500">Linen-wrapped, acid-free paper, archival ink.</p>
+                    </button>
+                </div>
+
+                <!-- Display -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-2xl border border-stone-100 p-8 md:p-12 relative h-[500px] flex flex-col justify-center">
+                    <div id="artifactContent" class="transition-opacity duration-500">
+                        <div class="serif italic text-2xl text-stone-800 mb-8 leading-relaxed">
+                            "The farm wasn't just dirt and crops to us. It was where my father taught me that silence wasn't emptiness—it was listening. That's a lesson I've carried through every boardroom I've sat in since..."
+                        </div>
+                        <div class="flex items-center gap-4 border-t border-stone-100 pt-8">
+                            <div class="w-12 h-12 bg-stone-200 rounded-full flex items-center justify-center text-stone-500 font-bold">V</div>
+                            <div>
+                                <p class="font-bold text-sm">Excerpt from Chapter 4</p>
+                                <p class="text-xs text-stone-400 italic">The Silence of the Soil</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Radar Section: Range of Legacy -->
+    <section class="py-24 bg-stone-50">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+            <div class="order-2 md:order-1">
+                <div class="chart-container">
+                    <canvas id="breadthChart"></canvas>
+                </div>
+            </div>
+            <div class="order-1 md:order-2">
+                <h2 class="text-4xl font-bold mb-6">Capturing the <br/><span class="italic text-stone-500">Full Spectrum</span></h2>
+                <p class="text-stone-600 mb-8 leading-relaxed">
+                    Sipoor doesn't just ask about dates and events. Our editorial ritual explores the values, philosophies, and quiet moments that define a person.
+                </p>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <span class="block text-stone-900 font-bold mb-1">Values & Beliefs</span>
+                        <p class="text-xs text-stone-500 italic">The "Why" behind their choices.</p>
+                    </div>
+                    <div>
+                        <span class="block text-stone-900 font-bold mb-1">Ancestry</span>
+                        <p class="text-xs text-stone-500 italic">Stories passed down to them.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tiers Section -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Investment in Memory</h2>
+                <p class="text-stone-500">Choose the artifact that suits your family.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Package 1 -->
+                <div class="border border-stone-100 p-8 rounded-sm hover:border-stone-900 transition flex flex-col group">
+                    <h3 class="text-xl font-bold mb-4 serif">The Digital Legacy</h3>
+                    <p class="text-stone-400 text-sm mb-8 leading-relaxed">For the modern family. A complete, organized digital vault of audio and narrative text.</p>
+                    <p class="text-3xl font-black mb-10">$1,200</p>
+                    <ul class="space-y-4 text-xs font-bold uppercase tracking-widest text-stone-500 mb-12 grow">
+                        <li>• 12 Private Audio Chapters</li>
+                        <li>• Full Edited Transcript</li>
+                        <li>• Digital Family Vault</li>
+                    </ul>
+                    <a href="mailto:story@mysipoor.life?subject=Legacy Inquiry: The Digital Legacy Package" class="w-full py-4 border border-stone-200 group-hover:bg-stone-900 group-hover:text-white transition uppercase text-xs font-bold tracking-widest text-center">Select</a>
+                </div>
+
+                <!-- Package 2 (Featured) -->
+                <div class="bg-stone-900 text-white p-8 rounded-sm shadow-2xl flex flex-col relative scale-105 z-10">
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-stone-100 text-stone-900 text-[10px] font-bold px-4 py-1 uppercase tracking-[0.2em] shadow-lg">The Heirloom Standard</div>
+                    <h3 class="text-xl font-bold mb-4 serif">The Library Volume</h3>
+                    <p class="text-stone-500 text-sm mb-8 leading-relaxed">The cornerstone of our service. A single, magnificent hardcover book to be passed down.</p>
+                    <p class="text-3xl font-black mb-10">$3,500</p>
+                    <ul class="space-y-4 text-xs font-bold uppercase tracking-widest text-stone-400 mb-12 grow">
+                        <li>• 20 Deep Ritual Interviews</li>
+                        <li>• Hardcover Linen Book (1 Copy)</li>
+                        <li>• Photo Restoration (Up to 50)</li>
+                        <li>• Audio Archive Included</li>
+                    </ul>
+                    <a href="mailto:story@mysipoor.life?subject=Legacy Inquiry: The Library Volume Package" class="w-full py-4 bg-white text-stone-900 hover:bg-stone-200 transition uppercase text-xs font-bold tracking-widest text-center">Reserve Now</a>
+                </div>
+
+                <!-- Package 3 -->
+                <div class="border border-stone-100 p-8 rounded-sm hover:border-stone-900 transition flex flex-col group">
+                    <h3 class="text-xl font-bold mb-4 serif">The Estate Collection</h3>
+                    <p class="text-stone-400 text-sm mb-8 leading-relaxed">A multi-generational archive for large families who want to share the legacy across branches.</p>
+                    <p class="text-3xl font-black mb-10">$8,500</p>
+                    <ul class="space-y-4 text-xs font-bold uppercase tracking-widest text-stone-500 mb-12 grow">
+                        <li>• Unlimited Interviews</li>
+                        <li>• 5 Deluxe Library Volumes</li>
+                        <li>• Private Documentary Short</li>
+                        <li>• Full Genealogy Research</li>
+                    </ul>
+                    <a href="mailto:story@mysipoor.life?subject=Legacy Inquiry: The Estate Collection Package" class="w-full py-4 border border-stone-200 group-hover:bg-stone-900 group-hover:text-white transition uppercase text-xs font-bold tracking-widest text-center">Inquire</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-white py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-12 border-b border-stone-800 pb-16 mb-16">
+                <div>
+                    <h2 class="text-4xl font-bold serif mb-6">Sipoor</h2>
+                    <p class="text-stone-500 max-w-sm">Dedicated to the preservation of extraordinary lives lived by ordinary people.</p>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-12 text-sm">
+                    <div class="space-y-4">
+                        <p class="font-bold text-stone-300">Artifacts</p>
+                        <ul class="text-stone-500 space-y-2">
+                            <li>The Book</li>
+                            <li>The Audio</li>
+                            <li>The Film</li>
+                        </ul>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="font-bold text-stone-300">Legacy</p>
+                        <ul class="text-stone-500 space-y-2">
+                            <li>Our Ritual</li>
+                            <li>Sample Chapters</li>
+                            <li>Success Stories</li>
+                        </ul>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="font-bold text-stone-300">Legal</p>
+                        <ul class="text-stone-500 space-y-2">
+                            <li>Privacy Vault</li>
+                            <li>Ethics</li>
+                            <li>Contact</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-stone-600 text-xs uppercase tracking-widest">© 2026 Sipoor Heritage Services. All Stories Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // --- ARTIFACT EXPLORER LOGIC ---
+        const artifacts = [
+            {
+                text: `"The farm wasn't just dirt and crops to us. It was where my father taught me that silence wasn't emptiness—it was listening. That's a lesson I've carried through every boardroom I've sat in since..."`,
+                cite: 'Excerpt from Chapter 4',
+                sub: 'The Silence of the Soil'
+            },
+            {
+                text: `[Visual: A restored 1942 photograph of a young man in a Naval uniform, his eyes bright with the uncertainty of war.] \n\n We pair every critical memory with a restored visual from your family archives, creating a cinematic reading experience.`,
+                cite: 'Visual Archive',
+                sub: 'Heirloom Retouching'
+            },
+            {
+                text: `Crafted in Italy using ethically sourced linen and 120gsm acid-free paper. This isn't a book; it's a hundred-year artifact designed to outlast the screens and servers of the digital age.`,
+                cite: 'The Physical Volume',
+                sub: 'Archival Specifications'
+            }
+        ];
+
+        function switchArtifact(index) {
+            const content = document.getElementById('artifactContent');
+            content.style.opacity = 0;
+            
+            setTimeout(() => {
+                const data = artifacts[index];
+                content.innerHTML = `
+                    <div class="serif italic text-2xl text-stone-800 mb-8 leading-relaxed">
+                        ${data.text}
+                    </div>
+                    <div class="flex items-center gap-4 border-t border-stone-100 pt-8">
+                        <div class="w-12 h-12 bg-stone-200 rounded-full flex items-center justify-center text-stone-500 font-bold">S</div>
+                        <div>
+                            <p class="font-bold text-sm">${data.cite}</p>
+                            <p class="text-xs text-stone-400 italic">${data.sub}</p>
+                        </div>
+                    </div>
+                `;
+                content.style.opacity = 1;
+            }, 500);
+
+            // Button update
+            [0, 1, 2].forEach(i => {
+                const btn = document.getElementById(`art-${i}`);
+                if (i === index) {
+                    btn.className = 'w-full text-left transition-all duration-300 step-active';
+                } else {
+                    btn.className = 'w-full text-left transition-all duration-300 step-inactive';
+                }
+            });
+        }
+
+        // --- CHARTS ---
+        window.onload = function() {
+            // Completion Chart
+            const ctxComp = document.getElementById('completionChart').getContext('2d');
+            new Chart(ctxComp, {
+                type: 'bar',
+                data: {
+                    labels: ['DIY Journals', 'Audio Recording Apps', 'Professional Agency', 'Sipoor Ritual'],
+                    datasets: [{
+                        label: 'Completion Success %',
+                        data: [5, 12, 75, 98],
+                        backgroundColor: ['#e5e7eb', '#d1d5db', '#9ca3af', '#1a1a1a'],
+                        borderRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+
+            // Breadth Radar
+            const ctxBreadth = document.getElementById('breadthChart').getContext('2d');
+            new Chart(ctxBreadth, {
+                type: 'radar',
+                data: {
+                    labels: ['Career & Achievement', 'Childhood & Roots', 'Values & Ethics', 'Family Anecdotes', 'Hardship & Wisdom', 'Hopes for Future'],
+                    datasets: [{
+                        label: 'Legacy Breadth',
+                        data: [85, 95, 90, 80, 88, 70],
+                        fill: true,
+                        backgroundColor: 'rgba(197, 160, 89, 0.2)',
+                        borderColor: '#c5a059',
+                        pointBackgroundColor: '#c5a059',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#c5a059'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
 </html>
