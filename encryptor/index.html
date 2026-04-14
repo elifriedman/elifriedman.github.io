@@ -10,479 +10,277 @@
     --border: #8a8a8a;
     --bg-soft: rgba(127,127,127,0.08);
     --text: #111;
-    --muted: #666;
   }
   body {
     font-family: Arial, sans-serif;
     max-width: 760px;
     margin: 20px auto;
     padding: 12px;
-    line-height: 1.45;
-    color: var(--text);
   }
-  h2 { text-align: center; margin: 8px 0 18px; }
+  h2 { text-align: center; }
+
   .card {
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 16px;
     background: var(--bg-soft);
   }
+
   .dropzone {
     border: 2px dashed var(--border);
-    padding: 28px 18px;
+    padding: 28px;
     text-align: center;
-    margin-bottom: 12px;
     border-radius: 14px;
-    user-select: none;
-    touch-action: manipulation;
+    margin-bottom: 10px;
   }
-  .dropzone.dragover { background: rgba(127,127,127,0.12); }
+
   .field {
     width: 100%;
-    box-sizing: border-box;
     padding: 14px;
     margin: 8px 0;
-    font-size: 16px;
     border-radius: 10px;
     border: 1px solid var(--border);
-    background: transparent;
-    color: inherit;
+    font-size: 16px;
   }
-  .row {
+
+  .password-wrapper {
+    position: relative;
+  }
+
+  .toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  .buttons {
     display: grid;
-    gap: 10px;
-    grid-template-columns: 1fr;
-  }
-  @media (min-width: 680px) {
-    .row.two { grid-template-columns: 1fr 1fr; }
-  }
-  .button-row {
-    display: grid;
-    gap: 10px;
     grid-template-columns: 1fr 1fr;
-    margin-top: 10px;
+    gap: 10px;
   }
+
   button {
-    width: 100%;
     padding: 14px;
     font-size: 16px;
     border-radius: 10px;
     border: 1px solid var(--border);
     cursor: pointer;
-    background: transparent;
-    color: inherit;
   }
-  button:disabled { opacity: 0.6; cursor: not-allowed; }
+
   .progress {
     height: 10px;
-    background: rgba(127,127,127,0.16);
+    background: #ddd;
     border-radius: 999px;
     overflow: hidden;
     margin-top: 10px;
   }
+
   .progress-bar {
     height: 100%;
     width: 0%;
-    transition: width 0.18s ease;
   }
+
   .status {
-    font-size: 14px;
-    margin-top: 12px;
-    min-height: 1.4em;
-  }
-  .meta {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 8px;
-  }
-  .small {
-    font-size: 12px;
-    color: var(--muted);
     margin-top: 10px;
+    font-size: 14px;
   }
-  select { appearance: auto; }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 </style>
 </head>
 <body>
-  <h2>🔐 Secure Encryptor</h2>
 
-  <div class="card">
-    <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Select file to encrypt or decrypt">
-      Tap or drag a file here
-    </div>
+<h2>🔐 Secure Encryptor</h2>
 
-    <input type="file" id="fileInput" hidden />
+<div class="card">
+  <div id="dropzone" class="dropzone">Tap or drag a file here</div>
+  <input type="file" id="fileInput" hidden />
 
-    <div class="row two">
-      <input class="field" type="password" id="password" placeholder="Enter password" autocomplete="current-password" />
-      <select class="field" id="kdfSelect" aria-label="Key derivation function">
-        <option value="argon2id" selected>Argon2id (recommended)</option>
-        <option value="pbkdf2">PBKDF2 (compatibility)</option>
-      </select>
-    </div>
-
-    <div class="row two" style="display: none;">
-      <input class="field" type="number" id="argon2Time" min="1" max="10" step="1" value="3" placeholder="Argon2 passes" />
-      <input class="field" type="number" id="argon2Mem" min="8192" step="1024" value="65536" placeholder="Argon2 memory (KiB)" />
-      <input class="field" type="number" id="pbkdf2Iter" min="100000" step="10000" value="200000" placeholder="PBKDF2 iterations" />
-    </div>
-
-    <div class="row two">
-      <input class="field" type="text" id="outputName" placeholder="Output file name override (optional)" />
-    </div>
-
-    <div class="button-row">
-      <button id="encryptBtn" type="button">Encrypt</button>
-      <button id="decryptBtn" type="button">Decrypt</button>
-    </div>
-
-    <div class="status" id="status"></div>
-    <div class="progress" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
-    <div class="meta" id="fileMeta"></div>
-    <div class="small">Format: <code>MAGIC + header length + authenticated JSON header + ciphertext</code></div>
+  <div class="password-wrapper">
+    <input id="password" class="field" type="password" placeholder="Enter password">
+    <span id="toggleEye" class="toggle-eye">👁️</span>
   </div>
 
-<script src="/encryptor/argon2.min.js"></script>
+  <div class="buttons">
+    <button id="encryptBtn">Encrypt</button>
+    <button id="decryptBtn">Decrypt</button>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/argon2-browser/dist/argon2.min.js"></script>
 <script>
 (() => {
-  'use strict';
-
-  const MAGIC = new TextEncoder().encode('MYENCv04'); // 8 bytes
+  const MAGIC = new TextEncoder().encode('MYENCv04');
   const VERSION = 4;
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
+  const DEFAULT_KDF = 'argon2id';
+  const ARGON2_PARAMS = { time: 3, mem: 65536, parallelism: 1 };
+  const PBKDF2_PARAMS = { iterations: 200000 };
+
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
   const passwordEl = document.getElementById('password');
-  const kdfSelect = document.getElementById('kdfSelect');
-  const argon2TimeEl = document.getElementById('argon2Time');
-  const argon2MemEl = document.getElementById('argon2Mem');
-  const pbkdf2IterEl = document.getElementById('pbkdf2Iter');
-  const outputNameEl = document.getElementById('outputName');
+  const toggleEye = document.getElementById('toggleEye');
   const encryptBtn = document.getElementById('encryptBtn');
   const decryptBtn = document.getElementById('decryptBtn');
   const statusEl = document.getElementById('status');
   const progressBar = document.getElementById('progressBar');
-  const fileMeta = document.getElementById('fileMeta');
 
-  let selectedFile = null;
+  let file = null;
 
-  function setBusy(busy) {
-    encryptBtn.disabled = busy;
-    decryptBtn.disabled = busy;
-    fileInput.disabled = busy;
-    kdfSelect.disabled = busy;
-    argon2TimeEl.disabled = busy;
-    argon2MemEl.disabled = busy;
-    pbkdf2IterEl.disabled = busy;
-  }
+  toggleEye.onclick = () => {
+    const hidden = passwordEl.type === 'password';
+    passwordEl.type = hidden ? 'text' : 'password';
+    toggleEye.textContent = hidden ? '🙈' : '👁️';
+  };
+
+  dropzone.onclick = () => fileInput.click();
+
+  dropzone.ondrop = e => {
+    e.preventDefault();
+    file = e.dataTransfer.files[0];
+    dropzone.innerText = file.name;
+  };
+
+  dropzone.ondragover = e => e.preventDefault();
+  fileInput.onchange = () => {
+    file = fileInput.files[0];
+    dropzone.innerText = file.name;
+  };
 
   function setProgress(p) {
-    progressBar.style.width = `${Math.max(0, Math.min(100, p))}%`;
+    progressBar.style.width = p + '%';
   }
 
-  function setStatus(msg) {
-    statusEl.textContent = msg;
-  }
-
-  function setMeta(msg) {
-    fileMeta.textContent = msg || '';
-  }
-
-  function nextFrame() {
-    return new Promise(resolve => requestAnimationFrame(() => resolve()));
+  function status(msg) {
+    statusEl.innerText = msg;
   }
 
   function concat(...arrays) {
-    const total = arrays.reduce((sum, arr) => sum + arr.length, 0);
-    const out = new Uint8Array(total);
-    let offset = 0;
-    for (const arr of arrays) {
-      out.set(arr, offset);
-      offset += arr.length;
+    let total = arrays.reduce((s,a)=>s+a.length,0);
+    let out = new Uint8Array(total);
+    let offset=0;
+    for (let a of arrays) {
+      out.set(a, offset);
+      offset += a.length;
     }
     return out;
   }
 
   function u32be(n) {
     const b = new Uint8Array(4);
-    const view = new DataView(b.buffer);
-    view.setUint32(0, n >>> 0, false);
+    new DataView(b.buffer).setUint32(0, n, false);
     return b;
   }
 
   function readU32be(bytes, offset) {
-    if (offset + 4 > bytes.length) throw new Error('Truncated file');
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0, false);
   }
 
-  function b64Encode(bytes) {
-    let s = '';
-    for (const b of bytes) s += String.fromCharCode(b);
-    return btoa(s);
-  }
-
-  function b64Decode(str) {
-    const bin = atob(str);
-    const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  }
-
-  function safeBaseName(name) {
-    const stripped = name.replace(/\.enc$/i, '');
-    const parts = stripped.split(/[\\/]/);
-    return parts[parts.length - 1] || 'file';
-  }
-
-  function defaultOutputNameForEncrypt(name) {
-    return `${name}.enc`;
-  }
-
-  function defaultOutputNameForDecrypt(name) {
-    return safeBaseName(name);
-  }
-
-  function handleFile(file) {
-    if (!file) return;
-    selectedFile = file;
-    dropzone.textContent = `Selected: ${file.name}`;
-    setMeta(`Size: ${file.size.toLocaleString()} bytes`);
-  }
-
-  dropzone.addEventListener('click', () => fileInput.click());
-  dropzone.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInput.click();
-    }
-  });
-
-  dropzone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropzone.classList.add('dragover');
-  });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-  dropzone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-    handleFile(e.dataTransfer.files && e.dataTransfer.files[0]);
-  });
-  fileInput.addEventListener('change', () => handleFile(fileInput.files && fileInput.files[0]));
-
-  async function deriveKey(password, salt, kdf, params) {
-    if (kdf === 'argon2id') {
-      if (!window.argon2) {
-        throw new Error('Argon2 is unavailable in this build');
-      }
-      setStatus('Deriving key with Argon2id...');
-      setProgress(12);
-      await nextFrame();
+  async function deriveKey(password, salt) {
+    if (DEFAULT_KDF === 'argon2id') {
+      if (!window.argon2) throw new Error('Argon2 missing');
 
       const res = await argon2.hash({
         pass: password,
         salt,
-        time: params.time,
-        mem: params.mem,
+        time: ARGON2_PARAMS.time,
+        mem: ARGON2_PARAMS.mem,
         hashLen: 32,
-        parallelism: params.parallelism,
+        parallelism: ARGON2_PARAMS.parallelism,
         type: argon2.ArgonType.Argon2id
       });
 
-      setProgress(40);
-      return crypto.subtle.importKey(
-        'raw',
-        res.hash,
-        { name: 'AES-GCM' },
-        false,
-        ['encrypt', 'decrypt']
-      );
+      return crypto.subtle.importKey('raw', res.hash, { name: 'AES-GCM' }, false, ['encrypt','decrypt']);
     }
 
-    if (kdf === 'pbkdf2') {
-      setStatus('Deriving key with PBKDF2...');
-      setProgress(12);
-      await nextFrame();
+    const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);
 
-      const keyMaterial = await crypto.subtle.importKey(
-        'raw',
-        encoder.encode(password),
-        'PBKDF2',
-        false,
-        ['deriveKey']
-      );
-
-      const key = await crypto.subtle.deriveKey(
-        {
-          name: 'PBKDF2',
-          salt,
-          iterations: params.iterations,
-          hash: 'SHA-256'
-        },
-        keyMaterial,
-        { name: 'AES-GCM', length: 256 },
-        false,
-        ['encrypt', 'decrypt']
-      );
-
-      setProgress(40);
-      return key;
-    }
-
-    throw new Error(`Unsupported KDF: ${kdf}`);
-  }
-
-  function buildHeader(obj) {
-    const headerBytes = encoder.encode(JSON.stringify(obj));
-    return headerBytes;
-  }
-
-  function parseHeader(bytes) {
-    const magic = decoder.decode(bytes.slice(0, 8));
-    if (magic !== 'MYENCv04') throw new Error('Invalid file magic');
-
-    const headerLen = readU32be(bytes, 8);
-    const headerStart = 12;
-    const headerEnd = headerStart + headerLen;
-    if (headerEnd > bytes.length) throw new Error('Truncated header');
-
-    const headerBytes = bytes.slice(headerStart, headerEnd);
-    const header = JSON.parse(decoder.decode(headerBytes));
-    const ciphertext = bytes.slice(headerEnd);
-
-    return { header, headerBytes, ciphertext };
-  }
-
-  function getEncryptName(fileName) {
-    const override = outputNameEl.value.trim();
-    if (override) return override;
-    return defaultOutputNameForEncrypt(fileName);
-  }
-
-  function getDecryptName(fileName) {
-    const override = outputNameEl.value.trim();
-    if (override) return override;
-    return defaultOutputNameForDecrypt(fileName);
+    return crypto.subtle.deriveKey({
+      name: 'PBKDF2',
+      salt,
+      iterations: PBKDF2_PARAMS.iterations,
+      hash: 'SHA-256'
+    }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt','decrypt']);
   }
 
   async function encrypt() {
-    try {
-      if (!selectedFile) return alert('Select a file');
-      const password = passwordEl.value;
-      if (!password) return alert('Enter a password');
+    if (!file) return alert('Select file');
+    const password = passwordEl.value;
+    if (!password) return alert('Enter password');
 
-      setBusy(true);
-      setProgress(0);
-      setStatus('Reading file...');
+    const data = new Uint8Array(await file.arrayBuffer());
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
 
-      const plaintext = new Uint8Array(await selectedFile.arrayBuffer());
-      setProgress(18);
+    const headerObj = {
+      v: VERSION,
+      kdf: DEFAULT_KDF,
+      kdfParams: DEFAULT_KDF === 'argon2id' ? ARGON2_PARAMS : PBKDF2_PARAMS,
+      salt: Array.from(salt),
+      nonce: Array.from(nonce)
+    };
 
-      const kdf = kdfSelect.value;
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const headerBytes = encoder.encode(JSON.stringify(headerObj));
+    const headerLen = u32be(headerBytes.length);
+    const authData = concat(MAGIC, headerLen, headerBytes);
 
-      const kdfParams = kdf === 'argon2id'
-        ? {
-            time: Math.max(1, Math.min(10, Number(argon2TimeEl.value) || 3)),
-            mem: Math.max(8192, Number(argon2MemEl.value) || 65536),
-            parallelism: 1
-          }
-        : {
-            iterations: Math.max(100000, Number(pbkdf2IterEl.value) || 200000)
-          };
+    const key = await deriveKey(password, salt);
 
-      const headerObj = {
-        v: VERSION,
-        cipher: 'AES-GCM',
-        kdf,
-        kdfParams,
-        salt: b64Encode(salt),
-        nonce: b64Encode(nonce),
-        name: selectedFile.name,
-        size: selectedFile.size,
-        createdAt: new Date().toISOString()
-      };
+    const encrypted = await crypto.subtle.encrypt(
+      { name:'AES-GCM', iv: nonce, additionalData: authData },
+      key,
+      data
+    );
 
-      const headerBytes = buildHeader(headerObj);
-      const headerLenBytes = u32be(headerBytes.length);
-      const authData = concat(MAGIC, headerLenBytes, headerBytes);
-
-      const key = await deriveKey(password, salt, kdf, kdfParams);
-
-      setStatus('Encrypting...');
-      setProgress(60);
-      await nextFrame();
-
-      const encrypted = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: nonce, additionalData: authData, tagLength: 128 },
-        key,
-        plaintext
-      );
-
-      setProgress(90);
-      const output = concat(authData, new Uint8Array(encrypted));
-      download(output, getEncryptName(selectedFile.name));
-
-      setProgress(100);
-      setStatus('Done ✅');
-    } catch (err) {
-      console.error(err);
-      setStatus(`Failed ❌ ${err && err.message ? err.message : err}`);
-      alert(err && err.message ? err.message : 'Encryption failed');
-    } finally {
-      setBusy(false);
-    }
+    const output = concat(authData, new Uint8Array(encrypted));
+    download(output, file.name + '.enc');
+    status('Done ✅');
   }
 
   async function decrypt() {
+    if (!file) return alert('Select file');
+    const password = passwordEl.value;
+    if (!password) return alert('Enter password');
+
+    const data = new Uint8Array(await file.arrayBuffer());
+
+    const magic = decoder.decode(data.slice(0,8));
+    if (magic !== 'MYENCv04') return alert('Invalid file');
+
+    const headerLen = readU32be(data, 8);
+    const headerStart = 12;
+    const headerEnd = headerStart + headerLen;
+
+    const headerBytes = data.slice(headerStart, headerEnd);
+    const header = JSON.parse(decoder.decode(headerBytes));
+
+    const salt = new Uint8Array(header.salt);
+    const nonce = new Uint8Array(header.nonce);
+
+    const ciphertext = data.slice(headerEnd);
+
+    const authData = concat(MAGIC, u32be(headerBytes.length), headerBytes);
+
+    const key = await deriveKey(password, salt);
+
     try {
-      if (!selectedFile) return alert('Select a file');
-      const password = passwordEl.value;
-      if (!password) return alert('Enter a password');
-
-      setBusy(true);
-      setProgress(0);
-      setStatus('Reading file...');
-
-      const data = new Uint8Array(await selectedFile.arrayBuffer());
-      const { header, headerBytes, ciphertext } = parseHeader(data);
-
-      if (header.v !== VERSION) throw new Error(`Unsupported version: ${header.v}`);
-      if (header.cipher !== 'AES-GCM') throw new Error('Unsupported cipher');
-      if (!header.kdf || !header.kdfParams) throw new Error('Missing KDF parameters');
-      if (!header.salt || !header.nonce) throw new Error('Missing salt or nonce');
-
-      const salt = b64Decode(header.salt);
-      const nonce = b64Decode(header.nonce);
-      const authData = concat(MAGIC, u32be(headerBytes.length), headerBytes);
-
-      const key = await deriveKey(password, salt, header.kdf, header.kdfParams);
-
-      setStatus('Decrypting...');
-      setProgress(70);
-      await nextFrame();
-
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: nonce, additionalData: authData, tagLength: 128 },
+        { name:'AES-GCM', iv: nonce, additionalData: authData },
         key,
         ciphertext
       );
 
-      const outName = getDecryptName(header.name || selectedFile.name);
-      download(new Uint8Array(decrypted), outName);
-
-      setProgress(100);
-      setStatus('Done ✅');
-    } catch (err) {
-      console.error(err);
-      setProgress(0);
-      setStatus('Failed ❌');
-      alert('Wrong password, corrupted file, or unsupported format');
-    } finally {
-      setBusy(false);
+      download(new Uint8Array(decrypted), file.name.replace(/\.enc$/,''));
+      status('Done ✅');
+    } catch {
+      alert('Wrong password or corrupted file');
     }
   }
 
@@ -492,22 +290,14 @@
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
     a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
   }
 
-  encryptBtn.addEventListener('click', encrypt);
-  decryptBtn.addEventListener('click', decrypt);
+  encryptBtn.onclick = encrypt;
+  decryptBtn.onclick = decrypt;
 })();
 </script>
 
-<!--
-This page assumes argon2-browser is bundled locally and served from the same origin.
-Do not use a CDN for the Argon2 runtime in a security-sensitive deployment.
--->
 </body>
 </html>
