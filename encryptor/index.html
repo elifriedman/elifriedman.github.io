@@ -11,13 +11,18 @@
     --bg-soft: rgba(127,127,127,0.08);
     --text: #111;
   }
+
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: Arial, sans-serif;
     max-width: 760px;
     margin: 20px auto;
     padding: 12px;
   }
-  h2 { text-align: center; }
+  h2, h3 { text-align: center; }
 
   .card {
     border: 1px solid var(--border);
@@ -34,6 +39,10 @@
     margin-bottom: 10px;
   }
 
+  .param {
+      display: none;
+  }
+
   .field {
     width: 100%;
     padding: 14px;
@@ -44,7 +53,9 @@
   }
 
   .password-wrapper {
+    display: grid;
     position: relative;
+    width: 100%;
   }
 
   .toggle-eye {
@@ -92,6 +103,29 @@
 <body>
 
 <h2>🔐 Secure Encryptor</h2>
+<h3>Encrypt files purely in your browser. Your files stay locally on your computer, nothing is sent over the internet.</h3>
+
+<div class="card" style="margin-bottom:12px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" id="algoHeader">
+    <strong>Expand to see encryption details</strong>
+    <span id="algoToggle">➕</span>
+  </div>
+  <div id="algoContent" style="display:none; margin-top:10px; font-size:14px; line-height:1.5;">
+    <p>
+      This tool uses modern authenticated encryption (AES‑256‑GCM + Argon2id) to protect your data:
+    </p>
+    <ul>
+      <li><b>Key Derivation:</b> The password is turned into an encryption key using <b>Argon2id</b> (memory‑hard, GPU‑resistant). Fallback if Argon2id is not available: PBKDF2 (200k iterations).</li>
+      <li><b>Encryption:</b> <b>AES‑256‑GCM</b>, which provides both confidentiality and integrity (tamper detection).</li>
+      <li><b>Randomness:</b> Each file uses a fresh 128‑bit salt and 96‑bit nonce.</li>
+      <li><b>Authenticated Metadata:</b> File header (version, KDF params, salt, nonce) is included as authenticated data.</li>
+      <li><b>File Format:</b> <code>MAGIC | header length | JSON header | ciphertext</code></li>
+    </ul>
+    <p>
+      Security depends on a strong password and a trusted browser environment.
+    </p>
+  </div>
+</div>
 
 <div class="card">
   <div id="dropzone" class="dropzone">Tap or drag a file here</div>
@@ -103,6 +137,8 @@
   </div>
 
   <div class="buttons">
+    <input class="field param" type="number" id="argon2Time" min="1" max="10" step="1" value="6" placeholder="Argon2 passes" />
+    <input class="field param" type="number" id="argon2Mem" min="8192" step="1024" value="131072" placeholder="Argon2 memory (KiB)" />
     <button id="encryptBtn">Encrypt</button>
     <button id="decryptBtn">Decrypt</button>
   </div>
@@ -114,19 +150,31 @@
 <script src="/encryptor/argon2-bundled.min.js"></script>
 <script>
 (() => {
+  const algoHeader = document.getElementById('algoHeader');
+  const algoContent = document.getElementById('algoContent');
+  const algoToggle = document.getElementById('algoToggle');
+
+  algoHeader.onclick = () => {
+    const open = algoContent.style.display === 'block';
+    algoContent.style.display = open ? 'none' : 'block';
+    algoToggle.textContent = open ? '➕' : '➖';
+  };
+
   const MAGIC = new TextEncoder().encode('MYENCv04');
   const VERSION = 4;
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
   const DEFAULT_KDF = 'argon2id';
-  const ARGON2_PARAMS = { time: 3, mem: 65536, parallelism: 1 };
+  const ARGON2_PARAMS = { time: 6, mem: 131072, parallelism: 1 };
   const PBKDF2_PARAMS = { iterations: 200000 };
 
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
   const passwordEl = document.getElementById('password');
   const toggleEye = document.getElementById('toggleEye');
+  const argonTime = document.getElementById('argon2Time');
+  const argonMem = document.getElementById('argon2Mem');
   const encryptBtn = document.getElementById('encryptBtn');
   const decryptBtn = document.getElementById('decryptBtn');
   const statusEl = document.getElementById('status');
@@ -186,6 +234,9 @@
   async function deriveKey(password, salt) {
     if (DEFAULT_KDF === 'argon2id') {
       if (!window.argon2) throw new Error('Argon2 missing');
+
+      ARGON2_PARAMS.time = argonTime.value;
+      ARGON2_PARAMS.mem = argonMem.value;
 
       const res = await argon2.hash({
         pass: password,
