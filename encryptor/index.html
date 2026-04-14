@@ -122,14 +122,14 @@
       </select>
     </div>
 
-    <div class="row two">
+    <div class="row two" style="display: none;">
       <input class="field" type="number" id="argon2Time" min="1" max="10" step="1" value="3" placeholder="Argon2 passes" />
       <input class="field" type="number" id="argon2Mem" min="8192" step="1024" value="65536" placeholder="Argon2 memory (KiB)" />
+      <input class="field" type="number" id="pbkdf2Iter" min="100000" step="10000" value="200000" placeholder="PBKDF2 iterations" />
     </div>
 
     <div class="row two">
-      <input class="field" type="number" id="pbkdf2Iter" min="100000" step="10000" value="200000" placeholder="PBKDF2 iterations" />
-      <input class="field" type="text" id="outputName" placeholder="Output name override (optional)" />
+      <input class="field" type="text" id="outputName" placeholder="Output file name override (optional)" />
     </div>
 
     <div class="button-row">
