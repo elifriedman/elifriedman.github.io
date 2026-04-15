@@ -175,7 +175,7 @@
     </div>
 
     <div class="buttons">
-      <input class="field param" type="number" id="argon2Time" min="1" max="10" step="1" value="6"
+      <input class="field param" type="number" id="argon2Time" min="1" max="10" step="1" value="3"
         placeholder="Argon2 passes" />
       <input class="field param" type="number" id="argon2Mem" min="8192" step="1024" value="131072"
         placeholder="Argon2 memory (KiB)" />
@@ -284,7 +284,7 @@
       // Validate and sanitise KDF params read from the file header.
       // Only accept known kdf values; enforce minimum work factors; ignore unknown keys.
       const KDF_LIMITS = {
-        argon2id: { minTime: 1, maxTime: 64, minMem: 8192, maxMem: 4 * 1024 * 1024 },
+        argon2id: { minTime: 1, maxTime: 64, minMem: 8192, maxMem: 4 * 1024 * 1024, minParallelism: 1, maxParallelism: 100},
         pbkdf2: { minIter: 100000, maxIter: 10000000 }
       };
 
@@ -293,7 +293,7 @@
           const lim = KDF_LIMITS.argon2id;
           const time = Math.max(lim.minTime, Math.min(lim.maxTime, Number(raw.time) | 0));
           const mem = Math.max(lim.minMem, Math.min(lim.maxMem, Number(raw.mem) | 0));
-          const parallelism = 1;
+          const parallelism = Math.max(lim.minParallelism, Math.min(lim.maxParallelism, Number(raw.parallelism) | 1));
           return { time, mem, parallelism };
         }
         if (kdf === 'pbkdf2') {
