@@ -200,7 +200,7 @@ if (typeof document !== "undefined") {
   dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
   dialog.addEventListener("close", () => { if (lastTrigger?.isConnected) lastTrigger.focus(); });
 
-  fetch("data/places.json")
+  fetch("https://galilinfo.elifdev.com/data/places.json")
     .then(response => { if (!response.ok) throw new Error("Data unavailable"); return response.json(); })
     .then(data => {
       if (!Array.isArray(data) || !data.every(place => place && typeof place.name === "string" && typeof place.type === "string")) throw new Error("Invalid data");
